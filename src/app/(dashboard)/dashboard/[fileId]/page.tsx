@@ -1,4 +1,4 @@
-import ChatWrapper from '@/components/ChatWrapper';
+import ChatWrapper from '@/components/chat/ChatWrapper';
 import PDFRenderer from '@/components/PDFRenderer';
 import {  getUserFileById } from '@/helpers/query';
 import { authOptions } from '@/lib/auth';
@@ -32,7 +32,7 @@ const FileDetail: FC<FileDetailProps> = async ({ params: { fileId } }) => {
 
         <div className="shrink-0 flex-[0.75] border-t border-gray-200 lg:w-96 lg:border-l lg:border-t-0">
           
-          <ChatWrapper />
+          <ChatWrapper file={userFile} />
         </div>
 			</div>
 		</div>

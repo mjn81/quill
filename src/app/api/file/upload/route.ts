@@ -4,7 +4,67 @@ import { fileTypeFromBuffer } from 'file-type';
 import { ALLOWED_FILE_MIMES } from "@/constants";
 import { db } from "@/db";
 import { fileUploadStatus, files } from "@/db/schema";
-import { createBucketIfNotExists, saveFileInBucket } from "@/storage/api";
+import { saveFileInBucket } from "@/storage/api";
+import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
+import {OpenAIEmbeddings} from 'langchain/embeddings/openai';
+import {PineconeStore} from '@langchain/pinecone';
+import { pinecone } from "@/lib/pinecone";
+import { eq } from "drizzle-orm";
+
+
+const getOpenAIConfig = () => {
+  const openAIApiKey = process.env.OPENAI_API_KEY;
+  if (!openAIApiKey) {
+    throw new Error('OpenAI API Key not found');
+  }
+  return {
+    openAIApiKey
+  };
+}
+
+const processFile = async ({
+	fileId,
+	fileBlob,
+}: {
+	fileId: string;
+	fileBlob: Blob;
+  }) => {
+  try {
+      const pdfLoader = new PDFLoader(fileBlob);
+
+      const pageLevelDocs = await pdfLoader.load();
+
+      const pageAmount = pageLevelDocs.length;
+
+      // vectorized and index the pdf
+      const pineconeIndex = pinecone.index('quill');
+
+      const embeddings = new OpenAIEmbeddings({
+      openAIApiKey: getOpenAIConfig().openAIApiKey,
+      });
+
+      await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
+      pineconeIndex,
+      namespace: fileId,
+      });
+
+      await db
+      .update(files)
+      .set({
+      uploadStatus: fileUploadStatus.enumValues[2],
+      })
+      .where(eq(files.id, fileId));
+  } catch (e) {
+    console.log(e);
+     await db
+				.update(files)
+				.set({
+					uploadStatus: fileUploadStatus.enumValues[3],
+				})
+				.where(eq(files.id, fileId));
+  }
+	
+};
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -14,11 +74,9 @@ export async function POST(req: Request) {
   const fd = await req.formData();
 
   const fileData = fd.get('file') as File;
-
   if (!fileData) {
     return new Response('No file found', { status: 400 });
   }
-  
   const fileBuffer = Buffer.from(await fileData.arrayBuffer());
   // check file type to be PDF
   const ft = await fileTypeFromBuffer(fileBuffer);
@@ -30,15 +88,15 @@ export async function POST(req: Request) {
   try {
     const trResponse = await db.transaction(async tx => {
       const dbFileResponse = await tx
-				.insert(files)
-				.values({
-					name: fileData.name,
-					userId: session.user.id,
+        .insert(files)
+        .values({
+          name: fileData.name,
+          userId: session.user.id,
           mimetype: fileData.type,
           size: fileData.size,
-					uploadStatus: fileUploadStatus.enumValues[1],
-				})
-				.returning();
+          uploadStatus: fileUploadStatus.enumValues[1],
+        })
+        .returning();
       const dbFile = dbFileResponse[0];
       // save file to storage
       await saveFileInBucket({
@@ -48,7 +106,17 @@ export async function POST(req: Request) {
       });
 
       return dbFile;
-    })
+    });
+
+    
+    // process file
+
+    const fileBlob = new Blob([fileBuffer]);
+
+    processFile({
+      fileId: trResponse.id,
+      fileBlob,
+    });
 
     return Response.json(trResponse, {
       status: 201
@@ -59,7 +127,6 @@ export async function POST(req: Request) {
     if (e instanceof Error) {
 			return new Response(e.message, { status: 400 });
     }
-    
     return new Response('something went wrong', {
 			status: 500,
 		});

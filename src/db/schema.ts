@@ -7,6 +7,7 @@ import {
   pgEnum,
   uuid,
   varchar,
+	boolean,
 } from 'drizzle-orm/pg-core';
 import type { AdapterAccount } from 'next-auth/adapters';
 
@@ -81,3 +82,14 @@ export const files = pgTable('file', {
 });
 
 export type File = typeof files.$inferSelect;
+
+export const messages = pgTable('message', {
+	id: uuid('id').notNull().primaryKey().defaultRandom(),
+	content: text('content').notNull(),
+	isUserMessage: boolean('is_user_message').notNull().default(true),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+	fileId: uuid('fileId').notNull().references(() => files.id, { onDelete: 'cascade' }),
+	userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+});
+
+export type Message = typeof messages.$inferSelect;

@@ -32,7 +32,7 @@ const UploadDropzone: FC = () => {
 		} catch (error) {
 			if (error instanceof AxiosError) {
 				toast.error(error.response?.data ?? 'Something went wrong');
-				return 
+				return;
 			}
 		} finally {
 			setIsUploading(false);

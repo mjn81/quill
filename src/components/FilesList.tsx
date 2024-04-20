@@ -87,6 +87,7 @@ const DeleteButton: FC<DeleteButtonProps> = ({ fileId, setFiles }) => {
 			} catch (error) {
 				if (error instanceof AxiosError) {
 					toast.error(error.response?.data || 'An error occurred');
+					return;
 				}
 			} finally {
 				setIsLoading(false);
