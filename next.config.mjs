@@ -1,4 +1,20 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+	webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+		config.resolve.alias.canvas = false;
+		config.resolve.alias.encoding = false;
+		return config;
+	},
+	images: {
+		remotePatterns: [
+			{
+				hostname: 'lh3.googleusercontent.com',
+			},
+			{
+				hostname: 'avatars.githubusercontent.com',
+			},
+		],
+	},
+};
 
 export default nextConfig;
