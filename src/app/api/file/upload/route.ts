@@ -27,6 +27,7 @@ const processFile = async ({
 
       const pageLevelDocs = await pdfLoader.load();
 
+      // limit page based on plans
       const pageAmount = pageLevelDocs.length;
 
       // vectorized and index the pdf
@@ -44,7 +45,8 @@ const processFile = async ({
       await db
       .update(files)
       .set({
-      uploadStatus: fileUploadStatus.enumValues[2],
+        uploadStatus: fileUploadStatus.enumValues[2],
+        updatedAt: new Date(),
       })
       .where(eq(files.id, fileId));
   } catch (e) {
@@ -52,7 +54,8 @@ const processFile = async ({
      await db
 				.update(files)
 				.set({
-					uploadStatus: fileUploadStatus.enumValues[3],
+          uploadStatus: fileUploadStatus.enumValues[3],
+          updatedAt: new Date(),
 				})
 				.where(eq(files.id, fileId));
   }
