@@ -1,6 +1,6 @@
 import ChatWrapper from '@/components/chat/ChatWrapper';
 import PDFRenderer from '@/components/PDFRenderer';
-import {  getUserFileById } from '@/helpers/query';
+import { getUserFileById } from '@/helpers/query';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { notFound } from 'next/navigation';
@@ -17,10 +17,12 @@ const FileDetail: FC<FileDetailProps> = async ({ params: { fileId } }) => {
   const session = await getServerSession(authOptions);
   if (!session) notFound();
 
+
   const userFile = await getUserFileById(fileId, session.user.id);
-
+  
   if (!userFile) notFound();
-
+  
+  
   return (
 		<div className="flex-1 justify-between flex flex-col h-[calc(100vh-3.5rem)]">
 			<div className="mx-auto w-full max-w-8xl grow lg:flex xl:px-2">

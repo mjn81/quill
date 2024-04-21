@@ -1,3 +1,4 @@
+'use client'
 import axios, { AxiosError } from "axios";
 import React, { type FC, type PropsWithChildren, createContext, useState } from "react";
 import toast from "react-hot-toast";
@@ -26,7 +27,7 @@ export const ChatContextProvider: FC<Props> = ({ children, fileId }) => {
   const addMessage = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.post(`/api/message/`, { message, fileId });
+      const res = await axios.post(`/api/message`, { message, fileId });
       
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -49,5 +50,5 @@ export const ChatContextProvider: FC<Props> = ({ children, fileId }) => {
     message,
     handleChangeInput,
     isLoading,
-  }}></ChatContext.Provider>
+  }}>{children}</ChatContext.Provider>
 }

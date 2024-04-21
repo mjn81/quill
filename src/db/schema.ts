@@ -4,10 +4,11 @@ import {
 	text,
 	primaryKey,
 	integer,
-  pgEnum,
-  uuid,
-  varchar,
+	pgEnum,
+	uuid,
+	varchar,
 	boolean,
+	serial,
 } from 'drizzle-orm/pg-core';
 import type { AdapterAccount } from 'next-auth/adapters';
 
@@ -82,9 +83,9 @@ export const files = pgTable('file', {
 });
 
 export type File = typeof files.$inferSelect;
-
+// has cursor pagination
 export const messages = pgTable('message', {
-	id: uuid('id').notNull().primaryKey().defaultRandom(),
+	id: serial('id').primaryKey(),
 	content: text('content').notNull(),
 	isUserMessage: boolean('is_user_message').notNull().default(true),
 	createdAt: timestamp('created_at').notNull().defaultNow(),

@@ -1,15 +1,24 @@
 import type { FC } from 'react';
 import Messages from './Messages';
 import ChatInput from './ChatInput';
-import { type File } from '@/db/schema';
+import { Message, type File } from '@/db/schema';
 import { Loader2, XCircle } from 'lucide-react';
 import { FREE_PLAN_PAGE_NUM_SUPPORT } from '@/constants';
+import { ChatContextProvider } from './context/ChatContext';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { getHistoryMessages } from '@/helpers/query';
+import { notFound } from 'next/navigation';
 
 interface ChatWrapperProps {
   file: File;
 }
 
 const ChatWrapper: FC<ChatWrapperProps> = async ({ file }) => {
+  const session = await getServerSession(authOptions);
+  if (!session) notFound();
+  const { messages: historyMessages, nextCursor } = await getHistoryMessages(file.id);
+
   if (file.uploadStatus === 'PROCESSING') {
     return <div className='relative min-h-full bg-zinc-50 flex divide-y divide-zinc-200 flex-col justify-between gap-2'>
       <div className='flex-1 flex justify-center items-center flex-col mb-28'>
@@ -45,13 +54,15 @@ const ChatWrapper: FC<ChatWrapperProps> = async ({ file }) => {
   }
   
   return (
-    <div className="relative min-h-full bg-zinc-50 divide-y divide-zinc-200 flex flex-col justify-between gap-2">
-      <div className='flex-1 justify-between flex flex-col'>
-        <Messages />
-      </div>
-      
-      <ChatInput />
-    </div>
+		<ChatContextProvider fileId={file.id}>
+			<div className="relative min-h-full bg-zinc-50 divide-y divide-zinc-200 flex flex-col justify-between gap-2">
+				<div className="flex-1 justify-between flex flex-col">
+					<Messages history={historyMessages} initialNextCursor={nextCursor} />
+				</div>
+
+				<ChatInput />
+			</div>
+		</ChatContextProvider>
 	);
 } 
 

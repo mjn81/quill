@@ -10,17 +10,10 @@ import {OpenAIEmbeddings} from 'langchain/embeddings/openai';
 import {PineconeStore} from '@langchain/pinecone';
 import { pinecone } from "@/lib/pinecone";
 import { eq } from "drizzle-orm";
+import { getOpenAIConfig } from "@/lib/openai";
 
 
-const getOpenAIConfig = () => {
-  const openAIApiKey = process.env.OPENAI_API_KEY;
-  if (!openAIApiKey) {
-    throw new Error('OpenAI API Key not found');
-  }
-  return {
-    openAIApiKey
-  };
-}
+
 
 const processFile = async ({
 	fileId,
