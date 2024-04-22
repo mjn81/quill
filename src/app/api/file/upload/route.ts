@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { fileUploadStatus, files } from "@/db/schema";
 import { saveFileInBucket } from "@/storage/api";
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
-import {OpenAIEmbeddings} from 'langchain/embeddings/openai';
+import {OpenAIEmbeddings} from '@langchain/openai';
 import {PineconeStore} from '@langchain/pinecone';
 import { pinecone } from "@/lib/pinecone";
 import { eq } from "drizzle-orm";

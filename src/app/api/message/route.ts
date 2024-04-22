@@ -1,14 +1,12 @@
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
-import { fileTypeFromBuffer } from 'file-type';
-import { ALLOWED_FILE_MIMES } from '@/constants';
+
 import { db } from '@/db';
-import { fileUploadStatus, files, messages } from '@/db/schema';
-import { createBucketIfNotExists, saveFileInBucket } from '@/storage/api';
+import { messages } from '@/db/schema';
 import { bodyMessageValidator } from '@/lib/validation/message';
 import { z } from 'zod';
 import { and, desc, eq } from 'drizzle-orm';
-import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
+import { OpenAIEmbeddings } from '@langchain/openai';
 import { getOpenAIConfig, openai } from '@/lib/openai';
 import { pinecone } from '@/lib/pinecone';
 import { PineconeStore } from '@langchain/pinecone';
@@ -106,9 +104,7 @@ export async function POST(req: Request) {
         });
       }
     });
-
     return new StreamingTextResponse(stream);
-    
   } catch (error) {
     if (error instanceof z.ZodError) {
       return new Response('Invalid payload' , { status: 400 });

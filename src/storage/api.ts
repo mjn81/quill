@@ -54,9 +54,7 @@ export async function saveFileInBucket({
   file: Buffer | internal.Readable
 }) {
   // Create bucket if it doesn't exist
-  console.log('here bucket name', bucketName);
   await createBucketIfNotExists(bucketName)
-  console.log('bucket created');
   // check if file exists - optional.
   // Without this check, the file will be overwritten if it exists
   const fileExists = await checkFileExistsInBucket({
