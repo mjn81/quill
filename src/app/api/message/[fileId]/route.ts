@@ -29,7 +29,7 @@ export async function GET(req: Request, { params: { fileId: invalidFileId } }: Q
 			fileId: invalidFileId,
 			cursor: invalidCursor,
 			limit: invalidLimit,
-		});
+    });
     const messages = await getHistoryMessages(fileId, limit, cursor);
   
     return Response.json(messages, { status: 200 });

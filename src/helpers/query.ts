@@ -1,7 +1,7 @@
 import { INFINITE_QUERY_LIMIT } from "@/constants/infinite-query";
 import { db } from "@/db";
-import { messages } from "@/db/schema";
-import { and, desc, eq, gt } from "drizzle-orm";
+import { Message, messages } from "@/db/schema";
+import { and, desc, eq, lt } from "drizzle-orm";
 
 export const getUserFiles = async (userId: string) => {
   const userFiles = await db.query.files.findMany({
@@ -17,18 +17,31 @@ export const getUserFileById = async (fileId: string, userId:string) => {
   return file;
 }
 
-export const getHistoryMessages = async (fileId: string, limit?: number, cursor?: number) => {
+export type MessageHistory = {
+  messages: Message[],
+  nextCursor: number | undefined,
+}
+
+export const getHistoryMessages = async (fileId: string, limit?: number, cursor?: number): Promise<MessageHistory> => {
   
   const rowLimit = (limit || INFINITE_QUERY_LIMIT) + 1;
   const userMessages = await db
 		.select()
 		.from(messages)
-		.where(cursor ? gt(messages.id, cursor) : undefined)
+		.where(
+			and(
+				eq(
+					messages.fileId,
+					fileId,
+        ),
+        cursor ? lt(messages.id, cursor) : undefined
+			)
+		)
 		.limit(rowLimit)
-    .orderBy(desc(messages.id));
+		.orderBy(desc(messages.id));
   let nextCursor = undefined;
 
-  if (userMessages.length > rowLimit) {
+  if (userMessages.length > INFINITE_QUERY_LIMIT) {
     const nextItem = userMessages.pop();
     nextCursor = nextItem?.id;
   }

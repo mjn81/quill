@@ -1,12 +1,12 @@
 'use client'
 import { ExtendedMessage } from "@/types/message";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import React, { type FC, type PropsWithChildren, createContext, useState, useRef } from "react";
 import toast from "react-hot-toast";
 
 type StreamResponse = {
   messages: ExtendedMessage[] | null;
-  setMessages: (messages: ExtendedMessage[]) => void;
+  setMessages: React.Dispatch<React.SetStateAction<ExtendedMessage[] | null>>;
   addMessage: () => void;
   message: string;
   handleChangeInput: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;

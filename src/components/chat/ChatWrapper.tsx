@@ -17,7 +17,7 @@ interface ChatWrapperProps {
 const ChatWrapper: FC<ChatWrapperProps> = async ({ file }) => {
   const session = await getServerSession(authOptions);
   if (!session) notFound();
-  const { messages: historyMessages, nextCursor } = await getHistoryMessages(file.id);
+  const { messages: historyMessages,nextCursor } = await getHistoryMessages(file.id);
 
   if (file.uploadStatus === 'PROCESSING') {
     return <div className='relative min-h-full bg-zinc-50 flex divide-y divide-zinc-200 flex-col justify-between gap-2'>
@@ -57,7 +57,7 @@ const ChatWrapper: FC<ChatWrapperProps> = async ({ file }) => {
 		<ChatContextProvider fileId={file.id}>
 			<div className="relative min-h-full bg-zinc-50 divide-y divide-zinc-200 flex flex-col justify-between gap-2">
 				<div className="flex-1 justify-between flex flex-col">
-					<Messages history={historyMessages} initialNextCursor={nextCursor} />
+					<Messages fileId={file.id} history={historyMessages} initialNextCursor={nextCursor} />
 				</div>
 
 				<ChatInput />
