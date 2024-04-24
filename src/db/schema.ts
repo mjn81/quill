@@ -18,6 +18,10 @@ export const users = pgTable('user', {
 	email: text('email').notNull(),
 	emailVerified: timestamp('emailVerified', { mode: 'date' }),
 	image: text('image'),
+	stripeCustomerId: varchar('stripe_customer_id'),
+	stripeSubscriptionId: varchar('stripe_subscription_id'),
+	stripePriceId: varchar('stripe_price_id'),
+	stripeCurrentPeriodEnd: timestamp('stripe_current_period_end'),
 });
 
 export const accounts = pgTable(
