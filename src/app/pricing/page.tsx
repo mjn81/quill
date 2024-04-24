@@ -70,8 +70,7 @@ const pricingItems = [
 
 const Pricing: FC<PricingProps> = async () => {
 	const session = await getServerSession(authOptions);
-	if (!session) notFound();
-  const user = session.user;
+  const user = session?.user;
 
 	return (
     <MaxWidthWrapper className='mb-8 mt-24 text-center max-w-5xl'>

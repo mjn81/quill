@@ -9,9 +9,14 @@ import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { type File as DBFileType } from '@/db/schema';
+import { FREE_UPLOAD_FILE_SIZE, PAYED_UPLOAD_FILE_SIZE } from '@/constants/stripe';
 
 
-const UploadDropzone: FC = () => {
+interface UploadDropzoneProps {
+	isSubscribed: boolean
+}
+
+const UploadDropzone: FC<UploadDropzoneProps> = ({isSubscribed}) => {
 	const [isUploading, setIsUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
 	const router = useRouter();
@@ -41,10 +46,7 @@ const UploadDropzone: FC = () => {
 	}
 
   return (
-		<Dropzone
-			multiple={false}
-			onDrop={onUpload}
-		>
+		<Dropzone multiple={false} onDrop={onUpload}>
 			{({ getRootProps, getInputProps, acceptedFiles }) => (
 				<div
 					{...getRootProps()}
@@ -62,7 +64,15 @@ const UploadDropzone: FC = () => {
 									and drop
 								</p>
 
-								<p className="text-xs text-zinc-500">PDF (up to 4MB)</p>
+								<p className="text-xs text-zinc-500">
+									PDF (up to{' '}
+									{`${
+										(isSubscribed
+											? PAYED_UPLOAD_FILE_SIZE
+											: FREE_UPLOAD_FILE_SIZE) / 1000_000
+									}MB`}
+									)
+								</p>
 							</div>
 							{acceptedFiles && acceptedFiles[0] ? (
 								<div className="max-w-xs bg-white flex items-center rounded-md overflow-hidden outline-none outline-[1px] outline-zinc-200 divide-x divide-zinc-200">
@@ -75,20 +85,32 @@ const UploadDropzone: FC = () => {
 								</div>
 							) : null}
 
-							{isUploading ? <div className='w-full mt-4 max-w-xs mx-auto'>
-								<Progress indicatorColor={
-									uploadProgress===100 ? 'bg-green-500' : ''
-								} value={uploadProgress} className="h-1 w-full bg-zinc-200" />
+							{isUploading ? (
+								<div className="w-full mt-4 max-w-xs mx-auto">
+									<Progress
+										indicatorColor={
+											uploadProgress === 100 ? 'bg-green-500' : ''
+										}
+										value={uploadProgress}
+										className="h-1 w-full bg-zinc-200"
+									/>
 
-								{uploadProgress === 100 ? (
-									<div className='flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2'>
-										<Loader2 className="h-3 w-3 animate-spin" />
-										Redirecting...
-									</div>
-								) : null }
-							</div> : null}
+									{uploadProgress === 100 ? (
+										<div className="flex gap-1 items-center justify-center text-sm text-zinc-700 text-center pt-2">
+											<Loader2 className="h-3 w-3 animate-spin" />
+											Redirecting...
+										</div>
+									) : null}
+								</div>
+							) : null}
 
-							<input {...getInputProps()} type="file" id="dropzone-file" className='hidden' hidden />
+							<input
+								{...getInputProps()}
+								type="file"
+								id="dropzone-file"
+								className="hidden"
+								hidden
+							/>
 						</label>
 					</div>
 				</div>
@@ -100,10 +122,10 @@ const UploadDropzone: FC = () => {
 
 
 interface UploadButtonProps {
-  
+	isSubscribed: boolean
 }
 
-const UploadButton: FC<UploadButtonProps> = () => {
+const UploadButton: FC<UploadButtonProps> = ({isSubscribed}) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
 		<Dialog
@@ -120,7 +142,7 @@ const UploadButton: FC<UploadButtonProps> = () => {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <UploadDropzone />
+        <UploadDropzone isSubscribed={isSubscribed} />
       </DialogContent>
     </Dialog>
 	);

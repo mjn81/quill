@@ -2,6 +2,7 @@ import { BILLING_URL, PLANS } from '@/constants/stripe';
 import { db } from '@/db';
 import { authOptions } from '@/lib/auth';
 import { getUserSubscriptionPlan, stripe } from '@/lib/stripe';
+import { absoluteUrl } from '@/lib/utils';
 import { eq } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 
@@ -17,13 +18,16 @@ export async function POST(req: Request) {
 
 	if (!dbUser) return new Response('Unauthorized', { status: 401 });
 
+
+  const billingUrl = absoluteUrl(BILLING_URL, req.url);
+  console.log(billingUrl)
 	const subscriptionPlan = await getUserSubscriptionPlan();
 
   if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
     const stripeSession = await stripe.billingPortal.sessions.create({
-      customer: dbUser.stripeCustomerId,
-      return_url: BILLING_URL,
-    });
+			customer: dbUser.stripeCustomerId,
+			return_url: billingUrl,
+		});
 
     return Response.json({
       url: stripeSession.url,
@@ -32,8 +36,8 @@ export async function POST(req: Request) {
   
   
   const stripeSession = await stripe.checkout.sessions.create({
-    success_url: BILLING_URL,
-    cancel_url: BILLING_URL,
+    success_url: billingUrl,
+    cancel_url: billingUrl,
     payment_method_types: ['card', 'paypal'],
     mode: 'subscription',
     billing_address_collection: 'auto',

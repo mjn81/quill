@@ -1,5 +1,5 @@
 import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth";
+import { User, getServerSession } from "next-auth";
 import { fileTypeFromBuffer } from 'file-type';
 import { ALLOWED_FILE_MIMES } from "@/constants";
 import { db } from "@/db";
@@ -11,55 +11,76 @@ import {PineconeStore} from '@langchain/pinecone';
 import { pinecone } from "@/lib/pinecone";
 import { eq } from "drizzle-orm";
 import { getOpenAIConfig } from "@/lib/openai";
+import { getUserSubscriptionPlan } from "@/lib/stripe";
+import { FREE_UPLOAD_FILE_SIZE, PAYED_UPLOAD_FILE_SIZE, PLANS } from "@/constants/stripe";
 
 
 
 
 const processFile = async ({
+	subscription,
 	fileId,
 	fileBlob,
 }: {
+	subscription: Awaited<ReturnType<typeof getUserSubscriptionPlan>>;
 	fileId: string;
 	fileBlob: Blob;
-  }) => {
-  try {
-      const pdfLoader = new PDFLoader(fileBlob);
+}) => {
+	try {
+		const pdfLoader = new PDFLoader(fileBlob);
 
-      const pageLevelDocs = await pdfLoader.load();
+		const pageLevelDocs = await pdfLoader.load();
 
-      // limit page based on plans
-      const pageAmount = pageLevelDocs.length;
+		// limit page based on plans
+		const pageAmount = pageLevelDocs.length;
 
-      // vectorized and index the pdf
-      const pineconeIndex = pinecone.index('quill');
+    const plan = PLANS.find((plan) => plan.name === subscription.name);
+    const isPlannedExceeded = !!plan && pageAmount > plan.pagesPerPdf; 
+		const isFreeExceeded =
+			pageAmount > PLANS.find((plan) => plan.name === 'Free')!.pagesPerPdf;
 
-      const embeddings = new OpenAIEmbeddings({
-      openAIApiKey: getOpenAIConfig().openAIApiKey,
-      });
-
-      await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
-      pineconeIndex,
-      namespace: fileId,
-      });
-
-      await db
-      .update(files)
-      .set({
-        uploadStatus: fileUploadStatus.enumValues[2],
-        updatedAt: new Date(),
-      })
-      .where(eq(files.id, fileId));
-  } catch (e) {
-    console.log(e);
-     await db
+		if (
+			(subscription.isSubscribed && isPlannedExceeded) ||
+			(!subscription.isSubscribed && isFreeExceeded)
+		) {
+			await db
 				.update(files)
 				.set({
-          uploadStatus: fileUploadStatus.enumValues[3],
-          updatedAt: new Date(),
+					uploadStatus: 'FAILED',
 				})
 				.where(eq(files.id, fileId));
-  }
-	
+			return;
+		}
+
+    // vectorized and index the pdf
+		const pineconeIndex = pinecone.index('quill');
+
+		const embeddings = new OpenAIEmbeddings({
+			openAIApiKey: getOpenAIConfig().openAIApiKey,
+		});
+
+		await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
+			pineconeIndex,
+			namespace: fileId,
+		});
+
+		await db
+			.update(files)
+			.set({
+				uploadStatus: fileUploadStatus.enumValues[2],
+				updatedAt: new Date(),
+			})
+			.where(eq(files.id, fileId));
+	} catch (e) {
+		console.log(e);
+		await db
+			.update(files)
+			.set({
+				uploadStatus: fileUploadStatus.enumValues[3],
+				updatedAt: new Date(),
+			})
+			.where(eq(files.id, fileId));
+	}
 };
 
 export async function POST(req: Request) {
@@ -71,17 +92,31 @@ export async function POST(req: Request) {
 
   const fileData = fd.get('file') as File;
   if (!fileData) {
-    return new Response('No file found', { status: 400 });
-  }
+		return new Response('No file found', { status: 400 });
+	}
   const fileBuffer = Buffer.from(await fileData.arrayBuffer());
   // check file type to be PDF
   const ft = await fileTypeFromBuffer(fileBuffer);
 	if (!ALLOWED_FILE_MIMES.includes(ft?.mime ?? '')) {
-    return new Response('Uploaded format is not allowed', {
+    return new Response('Uploaded format is not accepted', {
 			status: 400,
 		});
 	}
   try {
+    const subscription = await getUserSubscriptionPlan();
+    // make sure cannot upload more than what plan he has
+		if (
+			(subscription.isSubscribed && fileData.size > PAYED_UPLOAD_FILE_SIZE) ||
+			(!subscription.isSubscribed && fileData.size > FREE_UPLOAD_FILE_SIZE)
+		) {
+      return new Response(
+				'File size exceeded your plan. please update your plan to upload larger files.',
+				{
+					status: 400,
+				}
+			);
+		}
+
     const trResponse = await db.transaction(async tx => {
       const dbFileResponse = await tx
         .insert(files)
@@ -110,6 +145,7 @@ export async function POST(req: Request) {
     const fileBlob = new Blob([fileBuffer]);
 
     processFile({
+      subscription,
       fileId: trResponse.id,
       fileBlob,
     });

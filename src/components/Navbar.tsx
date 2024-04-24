@@ -5,6 +5,8 @@ import { buttonVariants } from './ui/button';
 import { ArrowRight } from 'lucide-react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import UserAccountNav from './UserAccountNav';
+import MobileNav from './MobileNav';
 
 interface NavbarProps {
   
@@ -18,8 +20,11 @@ const Navbar: FC<NavbarProps> = async () => {
 			<MaxWidthWrapper>
 				<div className="flex h-14 items-center justify-between border-b border-zinc-200">
 					<Link href="/" className="flex z-40 font-semibold">
-						<span>quill.</span>
+						<span>Quill.</span>
 					</Link>
+
+					<MobileNav isLoggedIn={!!user} />
+
 					<div className="hidden items-center space-x-4 sm:flex">
 						{!user ? (
 							<>
@@ -35,15 +40,6 @@ const Navbar: FC<NavbarProps> = async () => {
 								<Link
 									href="/login"
 									className={buttonVariants({
-										variant: 'ghost',
-										size: 'sm',
-									})}
-								>
-									Sign in
-								</Link>
-								<Link
-									href="/dashboard"
-									className={buttonVariants({
 										size: 'sm',
 									})}
 								>
@@ -52,14 +48,11 @@ const Navbar: FC<NavbarProps> = async () => {
 							</>
 						) : (
 							<>
-								<Link
-									href="/dashboard"
-									className={buttonVariants({
-										size: 'sm',
-									})}
-								>
-									Dashboard <ArrowRight className="ml-1.5 h-5 w-5" />
-								</Link>
+								<UserAccountNav
+									name={user.name ?? 'Your Account'}
+									email={user.email}
+									imageUrl={user.image}
+								/>
 							</>
 						)}
 					</div>

@@ -26,7 +26,7 @@ const ChatWrapper: FC<ChatWrapperProps> = async ({ file }) => {
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
           <h3 className='font-semibold text-xl'>Processing...</h3>
           <p className='text-zinc-500 text-sm'>
-            We&apos;re preparing your PDF. Please wait a moment.
+            We&apos;re preparing your PDF. Please refresh the page after a while.
           </p>
         </div>
       </div>

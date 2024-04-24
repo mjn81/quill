@@ -10,7 +10,7 @@ const UpgradeButton: FC = () => {
 
   const router = useRouter();
   const upgradePlan = async () => {
-    const res = await axios.get<{url: string}>('/api/billing');
+    const res = await axios.post<{url: string}>('/api/billing');
     const url = res.data.url;
 
     router.push(url ?? BILLING_URL);
