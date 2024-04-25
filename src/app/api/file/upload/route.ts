@@ -117,6 +117,14 @@ export async function POST(req: Request) {
 			);
 		}
 
+		const fileCount = (await db.select().from(files).where(eq(files.userId, session.user.id))).length;
+		const quota = subscription.quota ?? 0;
+		if (fileCount >= quota) {
+			return new Response('You have reached your file upload limit', {
+				status: 400,
+			});
+		}
+
     const trResponse = await db.transaction(async tx => {
       const dbFileResponse = await tx
         .insert(files)
