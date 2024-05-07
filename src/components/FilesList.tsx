@@ -52,11 +52,7 @@ const FilesList: FC<FilesListProps> = ({initialFiles}) => {
 							{format(file.createdAt, 'MMM yyyy')}
 						</div>
 						<div className="flex items-center gap-2">
-							<MessageSquare className="h-4 w-4" />
-							mocked
 						</div>
-
-
 						<DeleteButton fileId={file.id} setFiles={setFiles} />
 					
 					</div>
