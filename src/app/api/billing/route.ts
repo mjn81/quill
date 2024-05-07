@@ -20,7 +20,6 @@ export async function POST(req: Request) {
 
 
   const billingUrl = absoluteUrl(BILLING_URL, req.url);
-  console.log(billingUrl)
 	const subscriptionPlan = await getUserSubscriptionPlan();
 
   if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {

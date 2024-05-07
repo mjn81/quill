@@ -119,7 +119,6 @@ export async function POST(req: Request) {
 
 		const fileCount = (await db.select().from(files).where(eq(files.userId, session.user.id))).length;
 		
-		console.log(subscription.quota, fileCount, subscription);
 		const quota = subscription.quota;
 		if (fileCount >= quota) {
 			return new Response('You have reached your file upload limit', {

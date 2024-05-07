@@ -14,12 +14,22 @@ const getS3Config = () => {
   return { endPoint, useSSL, accessKey, secretKey, port };
 }
 
-export const s3Client = new Minio.Client({
-	endPoint: getS3Config().endPoint,
-  useSSL: getS3Config().useSSL,
-  port: getS3Config().port,
-	accessKey: getS3Config().accessKey,
-	secretKey: getS3Config().secretKey,
-});
+const s3Config =
+  process.env.NODE_ENV === 'development'
+    ? {
+      endPoint: getS3Config().endPoint,
+      useSSL: getS3Config().useSSL,
+      port: getS3Config().port,
+      accessKey: getS3Config().accessKey,
+      secretKey: getS3Config().secretKey,
+    }
+    : {
+        endPoint: getS3Config().endPoint,
+        useSSL: getS3Config().useSSL,
+        accessKey: getS3Config().accessKey,
+        secretKey: getS3Config().secretKey,
+      };
+
+export const s3Client = new Minio.Client(s3Config);
  
 
