@@ -21,25 +21,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
     depends_on:
-      - db
-      - minio
-
-  db:
-    image: postgres
-    environment:
-      POSTGRES_DB: quill
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin
-    volumes:
-      - db_data:/var/lib/postgresql/data
-
-  minio:
-    image: bitnami/minio
-    volumes:
-      - minio_data:/data
-    ports:
-      - "9000:9000"
-    command: server /data
+      - database
+      - file-server
 
 volumes:
   db_data:
