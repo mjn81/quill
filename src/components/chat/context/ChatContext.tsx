@@ -101,7 +101,7 @@ export const ChatContextProvider: FC<Props> = ({ children, fileId }) => {
 								return {
 									...msg,
 									content: accResponse,
-								};
+			 					};
 							}
 							return msg;
 						}) ?? []
