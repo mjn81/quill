@@ -1,12 +1,12 @@
-import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import Link from "next/link";
+import MaxWidthWrapper from '@/components/MaxWidthWrapper';
+import Link from 'next/link';
 
 import { ArrowRight } from 'lucide-react';
-import { buttonVariants } from "@/components/ui/button";
-import Image from "next/image";
+import { buttonVariants } from '@/components/ui/button';
+import Image from 'next/image';
 
 export default function Home() {
-  return (
+	return (
 		<>
 			<MaxWidthWrapper className="mb-12 mt-28 sm:mt-40 flex flex-col items-center justify-center text-center">
 				<div className="mx-auto mb-4 flex max-w-fit items-center justify-center space-x-2 overflow-hidden rounded-full border border-gray-200 bg-white px-7 py-2  shadow-md backdrop-blur transition-all hover:border-gray-300 hover:bg-white/50">
@@ -56,8 +56,8 @@ export default function Home() {
 										src="/dashboard-preview.jpg"
 										alt="product-preview"
 										width={1364}
-                    height={866}
-                    quality={100}
+										height={866}
+										quality={100}
 										className="rounded-md bg-white p-2 sm:p-8 md:p-20 shadow-2xl ring-1 ring-gray-900/10"
 									/>
 								</div>
@@ -146,14 +146,18 @@ export default function Home() {
 								src="/file-upload-preview.jpg"
 								alt="uploading-preview"
 								width={1419}
-                height={732}
-                quality={100}
+								height={732}
+								quality={100}
 								className="rounded-md bg-white p-2 sm:p-8 md:p-20 shadow-2xl ring-1 ring-gray-900/10"
 							/>
 						</div>
 					</div>
 				</div>
 			</div>
+			<footer className="text-center py-5 bg-white/60 w-full border-t border-border text-xs text-muted-foreground">
+				Made by 
+				<Link href="https://devmjn.com" className='underline font-semibold ml-1'>MJN</Link>
+			</footer>
 		</>
 	);
 }
