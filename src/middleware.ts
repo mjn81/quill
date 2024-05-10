@@ -1,18 +1,16 @@
 import { getToken } from 'next-auth/jwt';
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
-import { RateLimiterRedis } from 'rate-limiter-flexible';
-import { redisClient } from './lib/redis';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 
-// Rate limiting
-const rateLimiter = new RateLimiterRedis({
-	storeClient: redisClient,
-	points: 10, // 10 points
-	duration: 1, // Per second
+const rateLimiter = new RateLimiterMemory({
+	points: 10, // 10 requests
+	duration: 1, // per 1 second by IP
 });
 
 export default withAuth(
 	async function middleware(req) {
+		// first time connect to redis
 		const remoteAddress = req.ip || req.headers.get('x-forwarded-for') || '';
 		// Rate limiting
 		try {

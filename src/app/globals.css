@@ -78,3 +78,8 @@
 .scrollbar-thumb-rounded::-webkit-scrollbar-thumb {
   border-radius: 7px;
 }
+
+.login-bg-image {
+  background: url('/Login.webp') center no-repeat;
+  background-size: cover;
+}
